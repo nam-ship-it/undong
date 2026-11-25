@@ -58,6 +58,9 @@
   .chain span { font-size: 12px; color: rgba(20, 40, 75, .7); display: block; margin-top: 4px; }
   .streak-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; font-weight: 600; }
 
+  .wake { margin-top: 12px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; background: rgba(20, 40, 75, .1); display: inline-block; }
+  .wake.bad { background: var(--navy); color: var(--yellow); }
+
   /* ---------- 운동 줄 ---------- */
   .ex { background: var(--white); padding: 16px 20px 18px; border-bottom: 1px solid var(--line); }
   .ex-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
@@ -152,6 +155,7 @@
       <div class="sub" id="hero-sub"></div>
       <div class="chain" id="chain" aria-label="최근 7일"></div>
       <div class="streak-line"><span id="streak-text"></span><span id="total-text"></span></div>
+      <div id="wake" class="wake hidden" role="status"></div>
     </div>
   </div>
   <div class="wrap">
@@ -210,7 +214,7 @@
       <button class="btn line" id="import-btn">백업 파일 불러오기</button>
       <input type="file" id="import" accept=".json,application/json" class="hidden">
     </div>
-    <p class="tip">운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
+    <p class="tip">버전 4 (2026-11-25). 운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
   </div>
 </section>
 
@@ -389,15 +393,32 @@ function beep() {
 }
 
 // ---------- 운동 중 화면 꺼짐 방지 ----------
-let wakeLock = null;
+let wakeLock = null, wakeMsg = '';
 async function keepAwake() {
-  if (!('wakeLock' in navigator) || wakeLock || document.visibilityState !== 'visible') return;
+  if (!('wakeLock' in navigator)) { wakeMsg = '이 브라우저는 화면 꺼짐 방지를 지원하지 않습니다'; renderWake(); return; }
+  if (wakeLock || document.visibilityState !== 'visible') return;
   try {
     wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => { wakeLock = null; });
-  } catch (e) { /* 지원 안 하는 휴대폰이면 그냥 넘어감 */ }
+    wakeMsg = '화면 켜짐 유지 중';
+    wakeLock.addEventListener('release', () => {
+      wakeLock = null;
+      if (workoutInProgress()) wakeMsg = '화면 켜짐 유지가 풀렸습니다. 세트를 누르면 다시 켜집니다';
+      renderWake();
+    });
+  } catch (e) {
+    wakeMsg = e.name === 'NotAllowedError'
+      ? '화면 꺼짐 방지가 거절됐습니다. 저전력 모드가 켜져 있으면 꺼 주세요'
+      : `화면 꺼짐 방지 실패 (${e.name})`;
+  }
+  renderWake();
 }
-function letSleep() { if (wakeLock) { wakeLock.release(); wakeLock = null; } }
+function letSleep() { if (wakeLock) { const w = wakeLock; wakeLock = null; w.release(); } wakeMsg = ''; renderWake(); }
+function renderWake() {
+  const el = $('wake');
+  el.textContent = wakeMsg;
+  el.classList.toggle('hidden', !wakeMsg);
+  el.classList.toggle('bad', !!wakeMsg && !wakeLock);
+}
 function workoutInProgress() {
   const rec = state.days[todayKey];
   return !!rec && Object.keys(rec).length > 0 && dayStatus(state, todayKey) !== 'full';
