@@ -156,7 +156,7 @@
   </div>
   <div class="wrap">
     <div id="ex-list"></div>
-    <p class="tip">노란 버튼을 누르면 그 세트가 목표 개수로 기록되고 60초 휴식이 시작됩니다. 덜 했으면 숫자를 눌러 고치세요.<br>
+    <p class="tip">노란 버튼을 누르면 그 세트가 목표 개수로 기록되고 60초 휴식이 시작됩니다. 덜 했으면 숫자를 눌러 고치세요. 운동하는 동안에는 화면이 꺼지지 않습니다.<br>
     윗몸일으키기는 배 근육을 키우지만 뱃살을 직접 빼지는 못합니다. 뱃살은 전체 활동량과 식단으로 빠집니다.</p>
   </div>
 </section>
@@ -339,13 +339,14 @@ function renderToday(celebrate) {
 
 function doSet(ex, target) {
   unlockSound();
+  keepAwake();
   const before = dayStatus(state, todayKey);
   const rec = state.days[todayKey] = state.days[todayKey] || {};
   (rec[ex.id] = rec[ex.id] || []).push(target);
   save();
   const finished = before !== 'full' && dayStatus(state, todayKey) === 'full';
   renderToday(finished);
-  if (finished) { window.scrollTo({ top: 0, behavior: 'smooth' }); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]); return; }
+  if (finished) { letSleep(); window.scrollTo({ top: 0, behavior: 'smooth' }); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]); return; }
   const next = nextSet();
   if (next) startRest(next);
 }
@@ -363,19 +364,43 @@ function nextSet() {
 let restEnd = 0, restTimer = null, audio = null;
 function unlockSound() {
   // 휴대폰은 사용자가 누른 순간에만 소리를 켤 수 있다
+  // 아이폰 17+: 무음 모드에서도 소리가 나도록 '재생' 종류로 지정
+  if (navigator.audioSession) { try { navigator.audioSession.type = 'playback'; } catch (e) {} }
   if (!audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
-  if (audio && audio.state === 'suspended') audio.resume();
+  if (!audio) return;
+  if (audio.state !== 'running') audio.resume();
+  // 아이폰은 누른 순간 실제로 소리를 한 번 내야 이후 소리가 허용됨 (들리지 않는 짧은 소리)
+  const src = audio.createBufferSource();
+  src.buffer = audio.createBuffer(1, 1, 22050);
+  src.connect(audio.destination);
+  src.start(0);
 }
 function beep() {
   if (audio) {
-    [0, 0.3, 0.6].forEach(t => {
+    if (audio.state !== 'running') audio.resume();
+    [0, 0.4, 0.8].forEach(t => {
       const o = audio.createOscillator(), g = audio.createGain();
-      o.frequency.value = 880; g.gain.value = 0.3;
+      o.type = 'square'; o.frequency.value = 1000; g.gain.value = 0.5;
       o.connect(g); g.connect(audio.destination);
-      o.start(audio.currentTime + t); o.stop(audio.currentTime + t + 0.18);
+      o.start(audio.currentTime + t); o.stop(audio.currentTime + t + 0.28);
     });
   }
-  if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+  if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400]);
+}
+
+// ---------- 운동 중 화면 꺼짐 방지 ----------
+let wakeLock = null;
+async function keepAwake() {
+  if (!('wakeLock' in navigator) || wakeLock || document.visibilityState !== 'visible') return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (e) { /* 지원 안 하는 휴대폰이면 그냥 넘어감 */ }
+}
+function letSleep() { if (wakeLock) { wakeLock.release(); wakeLock = null; } }
+function workoutInProgress() {
+  const rec = state.days[todayKey];
+  return !!rec && Object.keys(rec).length > 0 && dayStatus(state, todayKey) !== 'full';
 }
 function startRest(next) {
   restEnd = Date.now() + REST_SECONDS * 1000; // 종료 시각 기준이라 화면이 꺼졌다 켜져도 맞음
@@ -393,7 +418,8 @@ function tickRest() {
 }
 function stopRest() { clearInterval(restTimer); restTimer = null; $('rest').classList.add('hidden'); }
 $('rest-skip').onclick = stopRest;
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (restTimer) tickRest(); renderToday(); } });
+// 앱을 잠깐 나갔다 오면 화면 꺼짐 방지가 풀리므로 운동 중이면 다시 건다
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (restTimer) tickRest(); renderToday(); if (workoutInProgress()) keepAwake(); } });
 
 // ---------- 달력 ----------
 function renderCal() {
