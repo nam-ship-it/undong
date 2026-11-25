@@ -1,0 +1,9 @@
+{
+  "name": "운동",
+  "short_name": "운동",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f7f5",
+  "theme_color": "#1f6f5c",
+  "lang": "ko"
+}

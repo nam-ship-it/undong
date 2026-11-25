@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="운동">
+<link rel="manifest" href="manifest.json">
+<title>운동</title>
+<style>
+  :root { --main:#1f6f5c; --light:#bfe3d6; --bg:#f6f7f5; --ink:#1d2421; --sub:#69736f; --line:#e1e5e2; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; background:var(--bg); color:var(--ink); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  header { padding: 18px 18px 6px; }
+  header h1 { margin:0; font-size: 22px; }
+  header p { margin:4px 0 0; color:var(--sub); font-size:14px; }
+  main { padding: 8px 14px; max-width: 520px; margin: 0 auto; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .card h2 { margin:0 0 2px; font-size:18px; display:flex; justify-content:space-between; align-items:center; }
+  .goal { color:var(--sub); font-size:14px; margin-bottom:10px; }
+  .done-badge { font-size:13px; color:var(--main); font-weight:600; }
+  .sets { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
+  .set { border:2px solid var(--main); background:#fff; color:var(--main); border-radius:10px; min-height:56px; font-size:16px; font-weight:600; }
+  .set:disabled { border-color:var(--line); color:#aab3af; }
+  .set-done { border:2px solid var(--main); background:var(--main); color:#fff; border-radius:10px; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; }
+  .set-done input { width:56px; font-size:18px; font-weight:700; text-align:center; border:0; border-radius:6px; padding:2px; }
+  .note { font-size:13px; color:var(--sub); line-height:1.5; }
+  .stats { display:flex; gap:10px; margin-bottom:12px; }
+  .stat { flex:1; background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center; }
+  .stat b { display:block; font-size:22px; color:var(--main); }
+  .stat span { font-size:12px; color:var(--sub); }
+  .cal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .cal-head button { border:1px solid var(--line); background:#fff; border-radius:8px; width:40px; height:36px; font-size:18px; }
+  .grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:4px; text-align:center; }
+  .grid .dow { font-size:12px; color:var(--sub); padding:4px 0; }
+  .day { aspect-ratio: 1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff; border:1px solid var(--line); }
+  .day.full { background:var(--main); color:#fff; border-color:var(--main); font-weight:700; }
+  .day.partial { background:var(--light); border-color:var(--light); }
+  .day.today { outline:2px solid var(--ink); }
+  .legend { display:flex; gap:14px; font-size:12px; color:var(--sub); margin-top:10px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:4px; border:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td, th { padding:6px 4px; border-bottom:1px solid var(--line); text-align:left; }
+  label { font-size:13px; color:var(--sub); display:block; margin:8px 0 4px; }
+  input[type=number], input[type=date] { width:100%; font-size:16px; padding:8px; border:1px solid var(--line); border-radius:8px; }
+  .btn { width:100%; min-height:46px; border:0; border-radius:10px; background:var(--main); color:#fff; font-size:16px; font-weight:600; margin-top:10px; }
+  .btn.sub { background:#fff; color:var(--main); border:1px solid var(--main); }
+  nav { position:fixed; left:0; right:0; bottom:0; display:flex; background:#fff; border-top:1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+  nav button { flex:1; border:0; background:none; min-height:60px; font-size:15px; color:var(--sub); }
+  nav button.on { color:var(--main); font-weight:700; }
+  .hidden { display:none !important; }
+  #rest { position:fixed; inset:0; background:rgba(20,40,34,.94); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+  #rest .num { font-size:96px; font-weight:700; font-variant-numeric: tabular-nums; }
+  #rest .next { font-size:16px; opacity:.85; margin-bottom:28px; text-align:center; padding:0 20px; }
+  #rest button { min-width:180px; min-height:50px; border-radius:25px; border:2px solid #fff; background:none; color:#fff; font-size:17px; }
+  .all-done { text-align:center; padding:18px; font-size:17px; font-weight:700; color:var(--main); }
+</style>
+</head>
+<body>
+<header>
+  <h1>운동</h1>
+  <p id="today-label"></p>
+</header>
+
+<main>
+  <section id="tab-today">
+    <div id="all-done" class="card all-done hidden">오늘 운동 완료! 내일은 1개씩 늘어납니다.</div>
+    <div id="ex-list"></div>
+    <p class="note">세트 버튼을 누르면 목표 개수로 기록되고 60초 휴식이 시작됩니다. 덜 했으면 숫자를 눌러 실제 개수로 고치세요.<br>
+    윗몸일으키기는 배 근육을 키우지만 뱃살을 직접 빼지는 않습니다. 뱃살은 전체 활동량과 식단으로 빠집니다.</p>
+  </section>
+
+  <section id="tab-cal" class="hidden">
+    <div class="stats">
+      <div class="stat"><b id="st-streak">0</b><span>연속 완료(일)</span></div>
+      <div class="stat"><b id="st-full">0</b><span>이번 달 완료</span></div>
+      <div class="stat"><b id="st-partial">0</b><span>이번 달 일부</span></div>
+    </div>
+    <div class="card">
+      <div class="cal-head">
+        <button id="prev" aria-label="이전 달">‹</button>
+        <strong id="cal-title"></strong>
+        <button id="next" aria-label="다음 달">›</button>
+      </div>
+      <div class="grid" id="cal"></div>
+      <div class="legend"><span><i style="background:var(--main)"></i>모두 완료</span><span><i style="background:var(--light)"></i>일부만</span><span><i></i>안 함</span></div>
+    </div>
+  </section>
+
+  <section id="tab-log" class="hidden">
+    <div class="card">
+      <h2>개수 변화</h2>
+      <table id="progress"></table>
+    </div>
+    <div class="card">
+      <h2>몸 기록 <span class="done-badge" id="body-last"></span></h2>
+      <p class="note">일주일에 한 번, 같은 시간(아침 공복 추천)에 재면 변화가 잘 보입니다. 배가 고민이라면 몸무게보다 허리둘레가 중요합니다.</p>
+      <label for="b-date">날짜</label><input type="date" id="b-date">
+      <label for="b-weight">몸무게 (kg)</label><input type="number" id="b-weight" inputmode="decimal" step="0.1" placeholder="78">
+      <label for="b-waist">허리둘레 (cm, 배꼽 높이)</label><input type="number" id="b-waist" inputmode="decimal" step="0.5">
+      <button class="btn" id="b-save">저장</button>
+      <table id="body-list" style="margin-top:10px"></table>
+    </div>
+    <div class="card">
+      <h2>백업</h2>
+      <p class="note">기록은 이 휴대폰 브라우저에만 저장됩니다. 가끔 백업 파일로 내보내 두세요. 휴대폰을 바꾸면 새 휴대폰에서 불러오면 됩니다.</p>
+      <button class="btn sub" id="export">백업 파일 내보내기</button>
+      <button class="btn sub" id="import-btn">백업 파일 불러오기</button>
+      <input type="file" id="import" accept=".json,application/json" class="hidden">
+    </div>
+    <p class="note">운동·건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리에 통증이 있으면 쉬고, 계속되면 전문가와 상담하세요.</p>
+  </section>
+</main>
+
+<nav>
+  <button data-tab="today" class="on">오늘</button>
+  <button data-tab="cal">달력</button>
+  <button data-tab="log">기록</button>
+</nav>
+
+<div id="rest" class="hidden" role="dialog" aria-label="휴식">
+  <div>휴식</div>
+  <div class="num" id="rest-num">60</div>
+  <div class="next" id="rest-next"></div>
+  <button id="rest-skip">건너뛰기</button>
+</div>
+
+<script src="core.js"></script>
+<script>
+const KEY = 'undong-v1';
+let state = load();
+let todayKey = localDateKey(new Date());
+let calMonth = new Date();
+
+function load() {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return newState();
+  try { return parseBackup(raw); }
+  catch (e) {
+    // 깨진 기록을 지우지 않고 따로 보관
+    localStorage.setItem(KEY + '-broken-' + Date.now(), raw);
+    alert('저장된 기록을 읽지 못해 새로 시작합니다. 원래 기록은 따로 보관해 두었습니다.');
+    return newState();
+  }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+const $ = id => document.getElementById(id);
+
+// ---------- 오늘 ----------
+function renderToday() {
+  todayKey = localDateKey(new Date());
+  const d = new Date();
+  $('today-label').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일 · 연속 ${streak(state, todayKey)}일째`;
+  const rec = state.days[todayKey] || {};
+  const list = $('ex-list');
+  list.innerHTML = '';
+  EXERCISES.forEach(ex => {
+    const target = targetFor(state, ex.id, todayKey);
+    const sets = rec[ex.id] || [];
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<h2>${ex.name}${isDone(sets, target) ? '<span class="done-badge">완료 ✓</span>' : ''}</h2>
+      <div class="goal">${SETS}세트 × ${target}개</div><div class="sets"></div>`;
+    const box = card.querySelector('.sets');
+    for (let i = 0; i < SETS; i++) {
+      if (i < sets.length) {
+        const cell = document.createElement('div');
+        cell.className = 'set-done';
+        cell.innerHTML = `<span>${i + 1}세트</span>`;
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.inputMode = 'numeric'; inp.min = 0; inp.value = sets[i];
+        inp.setAttribute('aria-label', `${ex.name} ${i + 1}세트 개수`);
+        inp.onchange = () => {
+          const v = Math.max(0, parseInt(inp.value, 10) || 0);
+          state.days[todayKey][ex.id][i] = v;
+          save(); renderToday();
+        };
+        cell.appendChild(inp);
+        box.appendChild(cell);
+      } else {
+        const b = document.createElement('button');
+        b.className = 'set';
+        b.textContent = `${i + 1}세트`;
+        b.disabled = i !== sets.length;
+        b.onclick = () => doSet(ex, target);
+        box.appendChild(b);
+      }
+    }
+    list.appendChild(card);
+  });
+  $('all-done').classList.toggle('hidden', dayStatus(state, todayKey) !== 'full');
+}
+
+function doSet(ex, target) {
+  unlockSound();
+  const rec = state.days[todayKey] = state.days[todayKey] || {};
+  (rec[ex.id] = rec[ex.id] || []).push(target);
+  save(); renderToday();
+  const next = nextSetText();
+  if (next) startRest(next);
+}
+
+function nextSetText() {
+  const rec = state.days[todayKey] || {};
+  for (const ex of EXERCISES) {
+    const n = (rec[ex.id] || []).length;
+    if (n < SETS) return `다음: ${ex.name} ${n + 1}세트 · ${targetFor(state, ex.id, todayKey)}개`;
+  }
+  return '';
+}
+
+// ---------- 휴식 타이머 ----------
+let restEnd = 0, restTimer = null, audio = null;
+function unlockSound() {
+  // 휴대폰은 사용자가 누른 순간에만 소리를 켤 수 있다
+  if (!audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (audio && audio.state === 'suspended') audio.resume();
+}
+function beep() {
+  if (audio) {
+    [0, 0.3, 0.6].forEach(t => {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = 880; g.gain.value = 0.3;
+      o.connect(g); g.connect(audio.destination);
+      o.start(audio.currentTime + t); o.stop(audio.currentTime + t + 0.18);
+    });
+  }
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+}
+function startRest(nextText) {
+  restEnd = Date.now() + REST_SECONDS * 1000; // 종료 시각 기준이라 화면이 꺼졌다 켜져도 맞음
+  $('rest-next').textContent = nextText;
+  $('rest').classList.remove('hidden');
+  tickRest();
+  clearInterval(restTimer);
+  restTimer = setInterval(tickRest, 250);
+}
+function tickRest() {
+  const left = Math.ceil((restEnd - Date.now()) / 1000);
+  if (left <= 0) { stopRest(); beep(); return; }
+  $('rest-num').textContent = left;
+}
+function stopRest() { clearInterval(restTimer); restTimer = null; $('rest').classList.add('hidden'); }
+$('rest-skip').onclick = stopRest;
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (restTimer) tickRest(); renderToday(); } });
+
+// ---------- 달력 ----------
+function renderCal() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  $('cal-title').textContent = `${y}년 ${m + 1}월`;
+  const sum = monthSummary(state, y, m + 1);
+  $('st-streak').textContent = streak(state, localDateKey(new Date()));
+  $('st-full').textContent = sum.full;
+  $('st-partial').textContent = sum.partial;
+  const g = $('cal');
+  g.innerHTML = '일월화수목금토'.split('').map(d => `<div class="dow">${d}</div>`).join('');
+  const first = new Date(y, m, 1).getDay();
+  const last = new Date(y, m + 1, 0).getDate();
+  for (let i = 0; i < first; i++) g.insertAdjacentHTML('beforeend', '<div></div>');
+  for (let d = 1; d <= last; d++) {
+    const k = localDateKey(new Date(y, m, d));
+    const s = dayStatus(state, k);
+    g.insertAdjacentHTML('beforeend', `<div class="day ${s !== 'none' ? s : ''} ${k === localDateKey(new Date()) ? 'today' : ''}" aria-label="${m + 1}월 ${d}일 ${({ full: '모두 완료', partial: '일부', none: '안 함' })[s]}">${d}</div>`);
+  }
+}
+$('prev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); };
+$('next').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); };
+
+// ---------- 기록 ----------
+function renderLog() {
+  const t = localDateKey(new Date());
+  $('progress').innerHTML = '<tr><th>운동</th><th>시작</th><th>오늘 목표</th><th>완료한 날</th></tr>' +
+    EXERCISES.map(ex => {
+      const now = targetFor(state, ex.id, t);
+      return `<tr><td>${ex.name}</td><td>${state.start[ex.id]}개</td><td>${now}개 (+${now - state.start[ex.id]})</td><td>${Object.keys(state.days).filter(k => isDone(state.days[k][ex.id], targetFor(state, ex.id, k))).length}일</td></tr>`;
+    }).join('');
+  const body = [...state.body].sort((a, b) => b.date.localeCompare(a.date));
+  $('body-list').innerHTML = body.length ? '<tr><th>날짜</th><th>몸무게</th><th>허리</th></tr>' +
+    body.slice(0, 12).map(b => `<tr><td>${b.date}</td><td>${b.weight ?? '-'}${b.weight != null ? 'kg' : ''}</td><td>${b.waist ?? '-'}${b.waist != null ? 'cm' : ''}</td></tr>`).join('') : '';
+  if (body.length) {
+    const days = Math.round((new Date(t) - new Date(body[0].date)) / 86400000);
+    $('body-last').textContent = days >= 7 ? '잴 때가 됐어요' : `마지막 기록 ${days}일 전`;
+  } else $('body-last').textContent = '';
+  $('b-date').value = t;
+}
+$('b-save').onclick = () => {
+  const date = $('b-date').value;
+  const num = v => v === '' ? null : Number(v);
+  const weight = num($('b-weight').value), waist = num($('b-waist').value);
+  if (!date || (weight == null && waist == null)) { alert('몸무게나 허리둘레 중 하나는 적어 주세요.'); return; }
+  if ((weight != null && !(weight > 20 && weight < 300)) || (waist != null && !(waist > 30 && waist < 250))) { alert('숫자를 다시 확인해 주세요.'); return; }
+  state.body = state.body.filter(b => b.date !== date).concat({ date, weight, waist });
+  save();
+  $('b-weight').value = ''; $('b-waist').value = '';
+  renderLog();
+};
+$('export').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `운동백업-${localDateKey(new Date())}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$('import-btn').onclick = () => $('import').click();
+$('import').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  let next;
+  try { next = parseBackup(await f.text()); }
+  catch (err) { alert('불러오지 못했습니다: ' + err.message + '\n지금 기록은 그대로입니다.'); return; }
+  if (!confirm(`백업 파일의 기록(${Object.keys(next.days).length}일)으로 지금 기록을 바꿀까요?`)) return;
+  state = next; save(); renderAll();
+};
+
+// ---------- 탭 ----------
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  ['today', 'cal', 'log'].forEach(t => $('tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+  renderAll();
+});
+function renderAll() { renderToday(); renderCal(); renderLog(); }
+renderAll();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
