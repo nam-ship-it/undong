@@ -227,7 +227,7 @@
       <button class="btn line" id="import-btn">백업 파일 불러오기</button>
       <input type="file" id="import" accept=".json,application/json" class="hidden">
     </div>
-    <p class="tip">버전 6 (2026-11-25). 운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
+    <p class="tip">버전 7 (2026-11-25). 운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
   </div>
 </section>
 
@@ -248,7 +248,7 @@
   </div>
 </div>
 
-<script src="core.js"></script>
+<script src="core.js?v=7"></script>
 <script>
 const KEY = 'undong-v1';
 let state = load();
@@ -340,7 +340,7 @@ function renderToday(celebrate) {
     row.innerHTML = `<div class="ex-head"><span class="ex-name-wrap"><span class="ex-name">${ex.name}</span>
         <button class="guide-btn" aria-expanded="${open}">${open ? '자세 닫기' : '자세'}</button></span>
       <span class="ex-goal"><span class="num">${target}</span><small>개 × ${SETS}세트</small></span></div><div class="sets"></div>
-      ${open ? `<div class="guide">${FIG[ex.id]}<div><ul>${ex.tips.map(t => `<li>${t}</li>`).join('')}</ul><div class="easier">${ex.easier}</div></div></div>` : ''}`;
+      ${open ? `<div class="guide">${FIG[ex.id]}<div><ul>${(ex.tips || []).map(t => `<li>${t}</li>`).join('')}</ul><div class="easier">${ex.easier || ''}</div></div></div>` : ''}`;
     row.querySelector('.guide-btn').onclick = () => { open ? guideOpen.delete(ex.id) : guideOpen.add(ex.id); renderToday(); };
     const box = row.querySelector('.sets');
     for (let i = 0; i < SETS; i++) {
@@ -489,7 +489,7 @@ function startRest(next) {
   restNext = next; lastSaid = null;
   restEnd = Date.now() + REST_SECONDS * 1000; // 종료 시각 기준이라 화면이 꺼졌다 켜져도 맞음
   $('rest-next').innerHTML = `다음<b>${next.name} ${next.set}세트, ${next.reps}개</b>`;
-  $('rest-tips').innerHTML = EXERCISES.find(e => e.name === next.name).tips.map(t => `<li>${t}</li>`).join('');
+  $('rest-tips').innerHTML = ((EXERCISES.find(e => e.name === next.name) || {}).tips || []).map(t => `<li>${t}</li>`).join('');
   $('rest').classList.remove('hidden');
   tickRest();
   clearInterval(restTimer);
