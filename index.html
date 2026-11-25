@@ -83,6 +83,16 @@
   .set-done input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .set-done input[type=number]::-webkit-inner-spin-button, .set-done input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   .set-done input[type=number] { width: 64px; border-radius: 0; background: none; border: 0; border-bottom: 1px dashed rgba(255, 255, 255, .4); color: var(--white); text-align: center; font-family: var(--num); font-weight: 800; font-size: 30px; line-height: 1; padding: 0; }
+  .guide-btn { border: 2px solid currentColor; background: none; border-radius: 16px; min-height: 32px; padding: 0 10px; font-size: 13px; font-weight: 700; margin-left: 8px; vertical-align: 3px; }
+  .ex-name-wrap { display: flex; align-items: center; }
+  .guide { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: start; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .ex.done .guide { border-top-color: var(--navy-2); }
+  .guide svg { width: 120px; height: auto; background: var(--bg); border-radius: 10px; }
+  .guide svg { color: var(--navy); }
+  .ex.done .guide svg { background: var(--navy-2); color: var(--white); }
+  .guide ul, #rest ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; }
+  .guide li + li, #rest li + li { margin-top: 4px; }
+  .guide .easier { font-size: 13px; margin-top: 8px; opacity: .8; }
   .tip { padding: 16px 20px; font-size: 13px; line-height: 1.6; color: var(--sub); }
 
   /* ---------- 공통 섹션 ---------- */
@@ -141,7 +151,7 @@
   @media (min-width: 520px) { #rest .num { font-size: 240px; } }
   #rest .bar { height: 10px; background: rgba(20, 40, 75, .15); border-radius: 5px; overflow: hidden; margin: 18px 0 22px; }
   #rest .bar i { display: block; height: 100%; background: var(--navy); width: 100%; }
-  #rest .next { font-size: 18px; line-height: 1.5; margin-bottom: 30px; }
+  #rest .next { font-size: 18px; line-height: 1.5; margin-bottom: 12px; }
   #rest .next b { display: block; font-size: 26px; }
   #rest button { min-height: 54px; border-radius: 14px; border: 2px solid var(--navy); background: none; font-size: 17px; font-weight: 700; }
 
@@ -217,7 +227,7 @@
       <button class="btn line" id="import-btn">백업 파일 불러오기</button>
       <input type="file" id="import" accept=".json,application/json" class="hidden">
     </div>
-    <p class="tip">버전 5 (2026-11-25). 운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
+    <p class="tip">버전 6 (2026-11-25). 운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
   </div>
 </section>
 
@@ -233,6 +243,7 @@
     <div class="num" id="rest-num">60</div>
     <div class="bar"><i id="rest-bar"></i></div>
     <div class="next" id="rest-next"></div>
+    <ul id="rest-tips" style="margin-bottom:26px"></ul>
     <button id="rest-skip" style="width:100%">바로 다음 세트 하기</button>
   </div>
 </div>
@@ -258,6 +269,19 @@ function load() {
   }
 }
 function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// ---------- 자세 그림 (옆에서 본 모습) ----------
+const guideOpen = new Set();
+const fig = (label, body) => `<svg viewBox="0 0 120 72" role="img" aria-label="${label}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <line x1="6" y1="66" x2="114" y2="66" stroke="#FFC93C" stroke-width="3"/>${body}</svg>`;
+const FIG = {
+  squat: fig('스쿼트 앉은 자세', `<circle cx="56" cy="13" r="6" fill="currentColor" stroke="none"/>
+    <path d="M54 21 L42 40"/><path d="M53 24 L76 27"/><path d="M42 40 L64 43 L60 64 L72 64"/>`),
+  pushup: fig('푸시업 엎드린 자세', `<circle cx="99" cy="30" r="5.5" fill="currentColor" stroke="none"/>
+    <path d="M91 35 L20 56 L14 64"/><path d="M89 36 L89 64"/>`),
+  situp: fig('윗몸일으키기 올라온 자세', `<circle cx="38" cy="30" r="5.5" fill="currentColor" stroke="none"/>
+    <path d="M43 37 L60 62"/><path d="M60 62 L78 42 L92 64"/><path d="M45 42 L56 46"/>`),
+};
 
 // ---------- 오늘 ----------
 function renderToday(celebrate) {
@@ -312,8 +336,12 @@ function renderToday(celebrate) {
     const sets = rec[ex.id] || [];
     const row = document.createElement('div');
     row.className = 'ex' + (isDone(sets, target) ? ' done' : '');
-    row.innerHTML = `<div class="ex-head"><span class="ex-name">${ex.name}</span>
-      <span class="ex-goal"><span class="num">${target}</span><small>개 × ${SETS}세트</small></span></div><div class="sets"></div>`;
+    const open = guideOpen.has(ex.id);
+    row.innerHTML = `<div class="ex-head"><span class="ex-name-wrap"><span class="ex-name">${ex.name}</span>
+        <button class="guide-btn" aria-expanded="${open}">${open ? '자세 닫기' : '자세'}</button></span>
+      <span class="ex-goal"><span class="num">${target}</span><small>개 × ${SETS}세트</small></span></div><div class="sets"></div>
+      ${open ? `<div class="guide">${FIG[ex.id]}<div><ul>${ex.tips.map(t => `<li>${t}</li>`).join('')}</ul><div class="easier">${ex.easier}</div></div></div>` : ''}`;
+    row.querySelector('.guide-btn').onclick = () => { open ? guideOpen.delete(ex.id) : guideOpen.add(ex.id); renderToday(); };
     const box = row.querySelector('.sets');
     for (let i = 0; i < SETS; i++) {
       if (i < sets.length) {
@@ -461,6 +489,7 @@ function startRest(next) {
   restNext = next; lastSaid = null;
   restEnd = Date.now() + REST_SECONDS * 1000; // 종료 시각 기준이라 화면이 꺼졌다 켜져도 맞음
   $('rest-next').innerHTML = `다음<b>${next.name} ${next.set}세트, ${next.reps}개</b>`;
+  $('rest-tips').innerHTML = EXERCISES.find(e => e.name === next.name).tips.map(t => `<li>${t}</li>`).join('');
   $('rest').classList.remove('hidden');
   tickRest();
   clearInterval(restTimer);
