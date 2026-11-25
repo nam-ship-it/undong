@@ -63,6 +63,13 @@ function monthSummary(state, y, m) {
   return out;
 }
 
+// 지금까지 한 전체 개수
+function totalReps(state) {
+  let n = 0;
+  Object.values(state.days).forEach(rec => Object.values(rec).forEach(sets => sets.forEach(r => { n += r; })));
+  return n;
+}
+
 // 백업 파일 검사. 형식이 틀리면 throw → 기존 기록을 덮어쓰지 않는다.
 function parseBackup(text) {
   const s = JSON.parse(text);
@@ -79,5 +86,5 @@ function parseBackup(text) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { EXERCISES, SETS, START_REPS, REST_SECONDS, newState, localDateKey, isDone, targetFor, dayStatus, addDays, streak, monthSummary, parseBackup };
+  module.exports = { EXERCISES, SETS, START_REPS, REST_SECONDS, newState, localDateKey, isDone, targetFor, dayStatus, addDays, streak, monthSummary, totalReps, parseBackup };
 }

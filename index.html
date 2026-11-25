@@ -3,115 +3,216 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f6f5c">
+<meta name="theme-color" content="#FFC93C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="운동">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@600;800&display=swap" rel="stylesheet">
 <title>운동</title>
 <style>
-  :root { --main:#1f6f5c; --light:#bfe3d6; --bg:#f6f7f5; --ink:#1d2421; --sub:#69736f; --line:#e1e5e2; }
+  :root {
+    --yellow: #FFC93C;
+    --yellow-soft: #FFE9A8;
+    --navy: #14284B;
+    --navy-2: #2B4170;
+    --bg: #ECEFF4;
+    --white: #FFFFFF;
+    --sub: #5B6577;
+    --line: #D5DAE3;
+    --num: "Saira Extra Condensed", "Arial Narrow", sans-serif;
+    --txt: -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+  }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; background:var(--bg); color:var(--ink); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
-  header { padding: 18px 18px 6px; }
-  header h1 { margin:0; font-size: 22px; }
-  header p { margin:4px 0 0; color:var(--sub); font-size:14px; }
-  main { padding: 8px 14px; max-width: 520px; margin: 0 auto; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
-  .card h2 { margin:0 0 2px; font-size:18px; display:flex; justify-content:space-between; align-items:center; }
-  .goal { color:var(--sub); font-size:14px; margin-bottom:10px; }
-  .done-badge { font-size:13px; color:var(--main); font-weight:600; }
-  .sets { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
-  .set { border:2px solid var(--main); background:#fff; color:var(--main); border-radius:10px; min-height:56px; font-size:16px; font-weight:600; }
-  .set:disabled { border-color:var(--line); color:#aab3af; }
-  .set-done { border:2px solid var(--main); background:var(--main); color:#fff; border-radius:10px; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; }
-  .set-done input { width:56px; font-size:18px; font-weight:700; text-align:center; border:0; border-radius:6px; padding:2px; }
-  .note { font-size:13px; color:var(--sub); line-height:1.5; }
-  .stats { display:flex; gap:10px; margin-bottom:12px; }
-  .stat { flex:1; background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center; }
-  .stat b { display:block; font-size:22px; color:var(--main); }
-  .stat span { font-size:12px; color:var(--sub); }
-  .cal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .cal-head button { border:1px solid var(--line); background:#fff; border-radius:8px; width:40px; height:36px; font-size:18px; }
-  .grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:4px; text-align:center; }
-  .grid .dow { font-size:12px; color:var(--sub); padding:4px 0; }
-  .day { aspect-ratio: 1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; background:#fff; border:1px solid var(--line); }
-  .day.full { background:var(--main); color:#fff; border-color:var(--main); font-weight:700; }
-  .day.partial { background:var(--light); border-color:var(--light); }
-  .day.today { outline:2px solid var(--ink); }
-  .legend { display:flex; gap:14px; font-size:12px; color:var(--sub); margin-top:10px; }
-  .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:4px; border:1px solid var(--line); }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  td, th { padding:6px 4px; border-bottom:1px solid var(--line); text-align:left; }
-  label { font-size:13px; color:var(--sub); display:block; margin:8px 0 4px; }
-  input[type=number], input[type=date] { width:100%; font-size:16px; padding:8px; border:1px solid var(--line); border-radius:8px; }
-  .btn { width:100%; min-height:46px; border:0; border-radius:10px; background:var(--main); color:#fff; font-size:16px; font-weight:600; margin-top:10px; }
-  .btn.sub { background:#fff; color:var(--main); border:1px solid var(--main); }
-  nav { position:fixed; left:0; right:0; bottom:0; display:flex; background:#fff; border-top:1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
-  nav button { flex:1; border:0; background:none; min-height:60px; font-size:15px; color:var(--sub); }
-  nav button.on { color:var(--main); font-weight:700; }
-  .hidden { display:none !important; }
-  #rest { position:fixed; inset:0; background:rgba(20,40,34,.94); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
-  #rest .num { font-size:96px; font-weight:700; font-variant-numeric: tabular-nums; }
-  #rest .next { font-size:16px; opacity:.85; margin-bottom:28px; text-align:center; padding:0 20px; }
-  #rest button { min-width:180px; min-height:50px; border-radius:25px; border:2px solid #fff; background:none; color:#fff; font-size:17px; }
-  .all-done { text-align:center; padding:18px; font-size:17px; font-weight:700; color:var(--main); }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; font-family: var(--txt); background: var(--bg); color: var(--navy); padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  button { font-family: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+  .num { font-family: var(--num); font-weight: 800; line-height: .85; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .hidden { display: none !important; }
+
+  /* ---------- 오늘: 노란 상단 ---------- */
+  .hero { background: var(--yellow); padding: calc(18px + env(safe-area-inset-top)) 20px 22px; }
+  .hero .date { font-size: 15px; font-weight: 600; }
+  .hero .big { display: flex; align-items: flex-end; gap: 10px; margin-top: 14px; }
+  .hero .big .num { font-size: 132px; }
+  .hero .big .unit { font-size: 20px; font-weight: 700; padding-bottom: 14px; line-height: 1.3; }
+  .hero .sub { font-size: 15px; margin-top: 8px; }
+  .hero.done { background: var(--navy); color: var(--white); }
+  .hero.done .chain i.full { background: var(--yellow); border-color: var(--yellow); }
+  .hero.done .chain i { border-color: var(--navy-2); }
+  .hero.done .chain i.partial { background: linear-gradient(to top, var(--yellow) 45%, transparent 45%); border-color: var(--yellow); }
+  .hero.done .big .num { color: var(--yellow); }
+  .hero.done .chain span { color: #B9C3D6; }
+  .hero.celebrate .big .num { animation: punch .7s cubic-bezier(.2, 1.6, .4, 1); }
+  @keyframes punch { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .chain { display: flex; gap: 6px; margin-top: 18px; }
+  .chain div { flex: 1; text-align: center; }
+  .chain i { display: block; height: 30px; border-radius: 6px; border: 2px solid rgba(20, 40, 75, .25); }
+  .chain i.full { background: var(--navy); border-color: var(--navy); }
+  .chain i.partial { background: linear-gradient(to top, var(--navy) 45%, transparent 45%); border-color: var(--navy); }
+  .chain i.today { border-width: 3px; border-color: var(--navy); }
+  .chain span { font-size: 12px; color: rgba(20, 40, 75, .7); display: block; margin-top: 4px; }
+  .streak-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; font-weight: 600; }
+
+  /* ---------- 운동 줄 ---------- */
+  .ex { background: var(--white); padding: 16px 20px 18px; border-bottom: 1px solid var(--line); }
+  .ex-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .ex-name { font-size: 20px; font-weight: 800; }
+  .ex-goal { display: flex; align-items: baseline; gap: 4px; }
+  .ex-goal .num { font-size: 34px; }
+  .ex-goal small { font-size: 14px; color: var(--sub); }
+  .ex.done { background: var(--navy); color: var(--white); border-bottom-color: var(--navy-2); }
+  .ex.done .ex-goal small { color: #B9C3D6; }
+  .sets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .set { min-height: 64px; border-radius: 12px; border: 2px dashed var(--line); background: none; font-size: 15px; font-weight: 700; color: #A2ABBA; }
+  .set.next { border: 0; background: var(--yellow); color: var(--navy); font-size: 17px; box-shadow: 0 3px 0 #D9A41F; }
+  .set.next:active { transform: translateY(3px); box-shadow: none; }
+  .set-done { min-height: 64px; border-radius: 12px; background: var(--navy); color: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .ex.done .set-done { background: var(--navy-2); }
+  .set-done span { font-size: 12px; opacity: .75; }
+  .set-done input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  .set-done input[type=number]::-webkit-inner-spin-button, .set-done input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .set-done input[type=number] { width: 64px; border-radius: 0; background: none; border: 0; border-bottom: 1px dashed rgba(255, 255, 255, .4); color: var(--white); text-align: center; font-family: var(--num); font-weight: 800; font-size: 30px; line-height: 1; padding: 0; }
+  .tip { padding: 16px 20px; font-size: 13px; line-height: 1.6; color: var(--sub); }
+
+  /* ---------- 공통 섹션 ---------- */
+  .page-title { padding: calc(22px + env(safe-area-inset-top)) 20px 10px; font-size: 26px; font-weight: 800; margin: 0; }
+  .block { background: var(--white); margin: 0 0 10px; padding: 18px 20px; }
+  .block h2 { margin: 0 0 12px; font-size: 17px; }
+  .note { font-size: 13px; line-height: 1.6; color: var(--sub); margin: 0 0 10px; }
+
+  /* 달력 */
+  .tally { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--white); margin-bottom: 10px; }
+  .tally div { padding: 16px 8px; text-align: center; border-right: 1px solid var(--line); }
+  .tally div:last-child { border-right: 0; }
+  .tally .num { font-size: 46px; display: block; }
+  .tally span { font-size: 13px; color: var(--sub); }
+  .tally span.num { color: var(--navy); font-size: 46px; }
+  .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cal-head strong { font-size: 17px; }
+  .cal-head button { border: 1px solid var(--line); background: var(--white); border-radius: 10px; width: 44px; height: 40px; font-size: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+  .grid .dow { font-size: 12px; color: var(--sub); padding: 2px 0 4px; }
+  .day { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--num); font-weight: 600; font-size: 20px; background: var(--bg); color: var(--sub); }
+  .day.full { background: var(--navy); color: var(--yellow); font-weight: 800; }
+  .day.partial { background: var(--yellow-soft); color: var(--navy); }
+  .day.today { box-shadow: inset 0 0 0 2px var(--navy); }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--sub); margin-top: 12px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+
+  /* 기록 */
+  .prog { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .prog:last-child { border-bottom: 0; }
+  .prog b { font-size: 16px; }
+  .prog small { display: block; color: var(--sub); font-size: 12px; margin-top: 2px; }
+  .prog .num { font-size: 36px; }
+  .prog .num em { font-style: normal; font-size: 20px; color: var(--sub); }
+  .total { display: flex; align-items: baseline; gap: 8px; }
+  .total .num { font-size: 56px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { padding: 7px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--sub); font-weight: 600; font-size: 13px; }
+  label { font-size: 13px; color: var(--sub); display: block; margin: 10px 0 4px; }
+  input[type=number], input[type=date] { width: 100%; font-size: 16px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--navy); font-family: inherit; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { width: 100%; min-height: 50px; border: 0; border-radius: 12px; background: var(--navy); color: var(--white); font-size: 16px; font-weight: 700; margin-top: 12px; }
+  .btn.line { background: var(--white); color: var(--navy); border: 2px solid var(--navy); }
+  .flag { font-size: 13px; font-weight: 700; background: var(--yellow); padding: 2px 8px; border-radius: 6px; margin-left: 6px; }
+
+  /* 아래 탭 */
+  nav { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--navy); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+  nav button { flex: 1; border: 0; background: none; min-height: 60px; font-size: 15px; color: #8D9AB5; font-weight: 600; }
+  nav button.on { color: var(--yellow); }
+
+  /* 휴식 */
+  #rest { position: fixed; inset: 0; background: var(--yellow); color: var(--navy); display: flex; flex-direction: column; justify-content: center; padding: 24px; z-index: 10; }
+  #rest .label { font-size: 20px; font-weight: 800; }
+  #rest .num { font-size: 46vw; max-height: 60vh; }
+  @media (min-width: 520px) { #rest .num { font-size: 240px; } }
+  #rest .bar { height: 10px; background: rgba(20, 40, 75, .15); border-radius: 5px; overflow: hidden; margin: 18px 0 22px; }
+  #rest .bar i { display: block; height: 100%; background: var(--navy); width: 100%; }
+  #rest .next { font-size: 18px; line-height: 1.5; margin-bottom: 30px; }
+  #rest .next b { display: block; font-size: 26px; }
+  #rest button { min-height: 54px; border-radius: 14px; border: 2px solid var(--navy); background: none; font-size: 17px; font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <h1>운동</h1>
-  <p id="today-label"></p>
-</header>
 
-<main>
-  <section id="tab-today">
-    <div id="all-done" class="card all-done hidden">오늘 운동 완료! 내일은 1개씩 늘어납니다.</div>
-    <div id="ex-list"></div>
-    <p class="note">세트 버튼을 누르면 목표 개수로 기록되고 60초 휴식이 시작됩니다. 덜 했으면 숫자를 눌러 실제 개수로 고치세요.<br>
-    윗몸일으키기는 배 근육을 키우지만 뱃살을 직접 빼지는 않습니다. 뱃살은 전체 활동량과 식단으로 빠집니다.</p>
-  </section>
-
-  <section id="tab-cal" class="hidden">
-    <div class="stats">
-      <div class="stat"><b id="st-streak">0</b><span>연속 완료(일)</span></div>
-      <div class="stat"><b id="st-full">0</b><span>이번 달 완료</span></div>
-      <div class="stat"><b id="st-partial">0</b><span>이번 달 일부</span></div>
+<section id="tab-today">
+  <div class="hero" id="hero">
+    <div class="wrap">
+      <div class="date" id="today-label"></div>
+      <div class="big"><span class="num" id="left-num">0</span><span class="unit" id="left-unit"></span></div>
+      <div class="sub" id="hero-sub"></div>
+      <div class="chain" id="chain" aria-label="최근 7일"></div>
+      <div class="streak-line"><span id="streak-text"></span><span id="total-text"></span></div>
     </div>
-    <div class="card">
+  </div>
+  <div class="wrap">
+    <div id="ex-list"></div>
+    <p class="tip">노란 버튼을 누르면 그 세트가 목표 개수로 기록되고 60초 휴식이 시작됩니다. 덜 했으면 숫자를 눌러 고치세요.<br>
+    윗몸일으키기는 배 근육을 키우지만 뱃살을 직접 빼지는 못합니다. 뱃살은 전체 활동량과 식단으로 빠집니다.</p>
+  </div>
+</section>
+
+<section id="tab-cal" class="hidden">
+  <div class="wrap">
+    <h1 class="page-title">달력</h1>
+    <div class="tally">
+      <div><span class="num" id="st-streak">0</span><span>연속 완료</span></div>
+      <div><span class="num" id="st-full">0</span><span>이번 달 완료</span></div>
+      <div><span class="num" id="st-partial">0</span><span>이번 달 일부</span></div>
+    </div>
+    <div class="block">
       <div class="cal-head">
         <button id="prev" aria-label="이전 달">‹</button>
         <strong id="cal-title"></strong>
         <button id="next" aria-label="다음 달">›</button>
       </div>
       <div class="grid" id="cal"></div>
-      <div class="legend"><span><i style="background:var(--main)"></i>모두 완료</span><span><i style="background:var(--light)"></i>일부만</span><span><i></i>안 함</span></div>
+      <div class="legend"><span><i style="background:var(--navy)"></i>모두 완료</span><span><i style="background:var(--yellow-soft)"></i>일부만</span><span><i style="background:var(--bg)"></i>안 함</span></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="tab-log" class="hidden">
-    <div class="card">
-      <h2>개수 변화</h2>
-      <table id="progress"></table>
+<section id="tab-log" class="hidden">
+  <div class="wrap">
+    <h1 class="page-title">기록</h1>
+    <div class="block">
+      <h2>지금까지 한 개수</h2>
+      <div class="total"><span class="num" id="total-big">0</span><span>개</span></div>
     </div>
-    <div class="card">
-      <h2>몸 기록 <span class="done-badge" id="body-last"></span></h2>
-      <p class="note">일주일에 한 번, 같은 시간(아침 공복 추천)에 재면 변화가 잘 보입니다. 배가 고민이라면 몸무게보다 허리둘레가 중요합니다.</p>
+    <div class="block">
+      <h2>세트당 개수 변화</h2>
+      <div id="progress"></div>
+    </div>
+    <div class="block">
+      <h2>몸 기록<span class="flag hidden" id="body-flag">잴 때가 됐어요</span></h2>
+      <p class="note">일주일에 한 번, 같은 시간(아침 공복 추천)에 재세요. 배가 고민이라면 몸무게보다 허리둘레 변화가 중요합니다.</p>
       <label for="b-date">날짜</label><input type="date" id="b-date">
-      <label for="b-weight">몸무게 (kg)</label><input type="number" id="b-weight" inputmode="decimal" step="0.1" placeholder="78">
-      <label for="b-waist">허리둘레 (cm, 배꼽 높이)</label><input type="number" id="b-waist" inputmode="decimal" step="0.5">
+      <div class="row2">
+        <div><label for="b-weight">몸무게 (kg)</label><input type="number" id="b-weight" inputmode="decimal" step="0.1"></div>
+        <div><label for="b-waist">허리둘레 (cm)</label><input type="number" id="b-waist" inputmode="decimal" step="0.5"></div>
+      </div>
       <button class="btn" id="b-save">저장</button>
-      <table id="body-list" style="margin-top:10px"></table>
+      <table id="body-list" style="margin-top:12px"></table>
     </div>
-    <div class="card">
+    <div class="block">
       <h2>백업</h2>
       <p class="note">기록은 이 휴대폰 브라우저에만 저장됩니다. 가끔 백업 파일로 내보내 두세요. 휴대폰을 바꾸면 새 휴대폰에서 불러오면 됩니다.</p>
-      <button class="btn sub" id="export">백업 파일 내보내기</button>
-      <button class="btn sub" id="import-btn">백업 파일 불러오기</button>
+      <button class="btn line" id="export">백업 파일 내보내기</button>
+      <button class="btn line" id="import-btn">백업 파일 불러오기</button>
       <input type="file" id="import" accept=".json,application/json" class="hidden">
     </div>
-    <p class="note">운동·건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리에 통증이 있으면 쉬고, 계속되면 전문가와 상담하세요.</p>
-  </section>
-</main>
+    <p class="tip">운동과 건강 안내는 일반적인 내용이며 의학적 조언이 아닙니다. 관절이나 허리가 아프면 쉬고, 계속되면 전문가와 상담하세요.</p>
+  </div>
+</section>
 
 <nav>
   <button data-tab="today" class="on">오늘</button>
@@ -120,10 +221,13 @@
 </nav>
 
 <div id="rest" class="hidden" role="dialog" aria-label="휴식">
-  <div>휴식</div>
-  <div class="num" id="rest-num">60</div>
-  <div class="next" id="rest-next"></div>
-  <button id="rest-skip">건너뛰기</button>
+  <div class="wrap" style="width:100%">
+    <div class="label">쉬는 시간</div>
+    <div class="num" id="rest-num">60</div>
+    <div class="bar"><i id="rest-bar"></i></div>
+    <div class="next" id="rest-next"></div>
+    <button id="rest-skip" style="width:100%">바로 다음 세트 하기</button>
+  </div>
 </div>
 
 <script src="core.js"></script>
@@ -132,6 +236,8 @@ const KEY = 'undong-v1';
 let state = load();
 let todayKey = localDateKey(new Date());
 let calMonth = new Date();
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('ko-KR');
 
 function load() {
   const raw = localStorage.getItem(KEY);
@@ -145,24 +251,63 @@ function load() {
   }
 }
 function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
-const $ = id => document.getElementById(id);
 
 // ---------- 오늘 ----------
-function renderToday() {
+function renderToday(celebrate) {
   todayKey = localDateKey(new Date());
   const d = new Date();
-  $('today-label').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일 · 연속 ${streak(state, todayKey)}일째`;
   const rec = state.days[todayKey] || {};
+  const status = dayStatus(state, todayKey);
+
+  let goal = 0, done = 0;
+  EXERCISES.forEach(ex => {
+    const t = targetFor(state, ex.id, todayKey);
+    goal += t * SETS;
+    (rec[ex.id] || []).forEach(r => { done += Math.min(r, t); });
+  });
+  const left = Math.max(0, goal - done);
+  const tomorrow = Math.min(...EXERCISES.map(ex => targetFor(state, ex.id, todayKey) + 1));
+
+  $('today-label').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`;
+  const hero = $('hero');
+  hero.classList.toggle('done', status === 'full');
+  if (status === 'full') {
+    $('left-num').textContent = done;
+    $('left-unit').textContent = '개 완료';
+    $('hero-sub').textContent = `오늘 목표를 다 채웠습니다. 내일은 세트당 ${tomorrow}개부터입니다.`;
+  } else {
+    $('left-num').textContent = left;
+    $('left-unit').textContent = done ? '개 남음' : '개 하면 오늘 끝';
+    $('hero-sub').textContent = done ? `${fmt(done)}개 했습니다. ${left <= goal / 3 ? '거의 다 왔습니다.' : '이 흐름 그대로 가세요.'}` : '스쿼트부터 시작하세요.';
+  }
+  hero.classList.toggle('celebrate', !!celebrate);
+
+  // 최근 7일 사슬
+  const chain = $('chain');
+  chain.innerHTML = '';
+  for (let i = 6; i >= 0; i--) {
+    const k = addDays(todayKey, -i);
+    const s = dayStatus(state, k);
+    const [y, m, dd] = k.split('-').map(Number);
+    const wd = '일월화수목금토'[new Date(y, m - 1, dd).getDay()];
+    chain.insertAdjacentHTML('beforeend', `<div><i class="${s !== 'none' ? s : ''} ${i === 0 ? 'today' : ''}" aria-label="${m}월 ${dd}일 ${({ full: '완료', partial: '일부', none: '안 함' })[s]}"></i><span>${i === 0 ? '오늘' : wd}</span></div>`);
+  }
+  const sk = streak(state, todayKey);
+  $('streak-text').textContent = sk ? `${sk}일 연속 완료 중` : '오늘부터 연속 기록 시작';
+  $('total-text').textContent = `지금까지 ${fmt(totalReps(state))}개`;
+
+  // 운동 줄
   const list = $('ex-list');
   list.innerHTML = '';
+  let nextMarked = false;
   EXERCISES.forEach(ex => {
     const target = targetFor(state, ex.id, todayKey);
     const sets = rec[ex.id] || [];
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<h2>${ex.name}${isDone(sets, target) ? '<span class="done-badge">완료 ✓</span>' : ''}</h2>
-      <div class="goal">${SETS}세트 × ${target}개</div><div class="sets"></div>`;
-    const box = card.querySelector('.sets');
+    const row = document.createElement('div');
+    row.className = 'ex' + (isDone(sets, target) ? ' done' : '');
+    row.innerHTML = `<div class="ex-head"><span class="ex-name">${ex.name}</span>
+      <span class="ex-goal"><span class="num">${target}</span><small>개 × ${SETS}세트</small></span></div><div class="sets"></div>`;
+    const box = row.querySelector('.sets');
     for (let i = 0; i < SETS; i++) {
       if (i < sets.length) {
         const cell = document.createElement('div');
@@ -172,42 +317,46 @@ function renderToday() {
         inp.type = 'number'; inp.inputMode = 'numeric'; inp.min = 0; inp.value = sets[i];
         inp.setAttribute('aria-label', `${ex.name} ${i + 1}세트 개수`);
         inp.onchange = () => {
-          const v = Math.max(0, parseInt(inp.value, 10) || 0);
-          state.days[todayKey][ex.id][i] = v;
+          state.days[todayKey][ex.id][i] = Math.max(0, parseInt(inp.value, 10) || 0);
           save(); renderToday();
         };
         cell.appendChild(inp);
         box.appendChild(cell);
       } else {
         const b = document.createElement('button');
-        b.className = 'set';
+        const isNext = i === sets.length;
+        b.className = 'set' + (isNext && !nextMarked ? ' next' : '');
+        if (isNext && !nextMarked) nextMarked = true;
         b.textContent = `${i + 1}세트`;
-        b.disabled = i !== sets.length;
+        b.disabled = !isNext;
         b.onclick = () => doSet(ex, target);
         box.appendChild(b);
       }
     }
-    list.appendChild(card);
+    list.appendChild(row);
   });
-  $('all-done').classList.toggle('hidden', dayStatus(state, todayKey) !== 'full');
 }
 
 function doSet(ex, target) {
   unlockSound();
+  const before = dayStatus(state, todayKey);
   const rec = state.days[todayKey] = state.days[todayKey] || {};
   (rec[ex.id] = rec[ex.id] || []).push(target);
-  save(); renderToday();
-  const next = nextSetText();
+  save();
+  const finished = before !== 'full' && dayStatus(state, todayKey) === 'full';
+  renderToday(finished);
+  if (finished) { window.scrollTo({ top: 0, behavior: 'smooth' }); if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 200]); return; }
+  const next = nextSet();
   if (next) startRest(next);
 }
 
-function nextSetText() {
+function nextSet() {
   const rec = state.days[todayKey] || {};
   for (const ex of EXERCISES) {
     const n = (rec[ex.id] || []).length;
-    if (n < SETS) return `다음: ${ex.name} ${n + 1}세트 · ${targetFor(state, ex.id, todayKey)}개`;
+    if (n < SETS) return { name: ex.name, set: n + 1, reps: targetFor(state, ex.id, todayKey) };
   }
-  return '';
+  return null;
 }
 
 // ---------- 휴식 타이머 ----------
@@ -228,18 +377,19 @@ function beep() {
   }
   if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
 }
-function startRest(nextText) {
+function startRest(next) {
   restEnd = Date.now() + REST_SECONDS * 1000; // 종료 시각 기준이라 화면이 꺼졌다 켜져도 맞음
-  $('rest-next').textContent = nextText;
+  $('rest-next').innerHTML = `다음<b>${next.name} ${next.set}세트, ${next.reps}개</b>`;
   $('rest').classList.remove('hidden');
   tickRest();
   clearInterval(restTimer);
-  restTimer = setInterval(tickRest, 250);
+  restTimer = setInterval(tickRest, 200);
 }
 function tickRest() {
-  const left = Math.ceil((restEnd - Date.now()) / 1000);
-  if (left <= 0) { stopRest(); beep(); return; }
-  $('rest-num').textContent = left;
+  const ms = restEnd - Date.now();
+  if (ms <= 0) { stopRest(); beep(); return; }
+  $('rest-num').textContent = Math.ceil(ms / 1000);
+  $('rest-bar').style.width = (ms / (REST_SECONDS * 10)) + '%';
 }
 function stopRest() { clearInterval(restTimer); restTimer = null; $('rest').classList.add('hidden'); }
 $('rest-skip').onclick = stopRest;
@@ -248,9 +398,10 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { if
 // ---------- 달력 ----------
 function renderCal() {
   const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const today = localDateKey(new Date());
   $('cal-title').textContent = `${y}년 ${m + 1}월`;
   const sum = monthSummary(state, y, m + 1);
-  $('st-streak').textContent = streak(state, localDateKey(new Date()));
+  $('st-streak').textContent = streak(state, today);
   $('st-full').textContent = sum.full;
   $('st-partial').textContent = sum.partial;
   const g = $('cal');
@@ -261,7 +412,7 @@ function renderCal() {
   for (let d = 1; d <= last; d++) {
     const k = localDateKey(new Date(y, m, d));
     const s = dayStatus(state, k);
-    g.insertAdjacentHTML('beforeend', `<div class="day ${s !== 'none' ? s : ''} ${k === localDateKey(new Date()) ? 'today' : ''}" aria-label="${m + 1}월 ${d}일 ${({ full: '모두 완료', partial: '일부', none: '안 함' })[s]}">${d}</div>`);
+    g.insertAdjacentHTML('beforeend', `<div class="day ${s !== 'none' ? s : ''} ${k === today ? 'today' : ''}" aria-label="${m + 1}월 ${d}일 ${({ full: '모두 완료', partial: '일부', none: '안 함' })[s]}">${d}</div>`);
   }
 }
 $('prev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); };
@@ -270,18 +421,18 @@ $('next').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth
 // ---------- 기록 ----------
 function renderLog() {
   const t = localDateKey(new Date());
-  $('progress').innerHTML = '<tr><th>운동</th><th>시작</th><th>오늘 목표</th><th>완료한 날</th></tr>' +
-    EXERCISES.map(ex => {
-      const now = targetFor(state, ex.id, t);
-      return `<tr><td>${ex.name}</td><td>${state.start[ex.id]}개</td><td>${now}개 (+${now - state.start[ex.id]})</td><td>${Object.keys(state.days).filter(k => isDone(state.days[k][ex.id], targetFor(state, ex.id, k))).length}일</td></tr>`;
-    }).join('');
+  $('total-big').textContent = fmt(totalReps(state));
+  $('progress').innerHTML = EXERCISES.map(ex => {
+    const now = targetFor(state, ex.id, t);
+    const days = Object.keys(state.days).filter(k => isDone(state.days[k][ex.id], targetFor(state, ex.id, k))).length;
+    return `<div class="prog"><div><b>${ex.name}</b><small>시작 ${state.start[ex.id]}개, 완료한 날 ${days}일</small></div>
+      <div class="num">${now}<em> +${now - state.start[ex.id]}</em></div></div>`;
+  }).join('');
   const body = [...state.body].sort((a, b) => b.date.localeCompare(a.date));
-  $('body-list').innerHTML = body.length ? '<tr><th>날짜</th><th>몸무게</th><th>허리</th></tr>' +
-    body.slice(0, 12).map(b => `<tr><td>${b.date}</td><td>${b.weight ?? '-'}${b.weight != null ? 'kg' : ''}</td><td>${b.waist ?? '-'}${b.waist != null ? 'cm' : ''}</td></tr>`).join('') : '';
-  if (body.length) {
-    const days = Math.round((new Date(t) - new Date(body[0].date)) / 86400000);
-    $('body-last').textContent = days >= 7 ? '잴 때가 됐어요' : `마지막 기록 ${days}일 전`;
-  } else $('body-last').textContent = '';
+  $('body-list').innerHTML = body.length ? '<tr><th>날짜</th><th>몸무게</th><th>허리둘레</th></tr>' +
+    body.slice(0, 12).map(b => `<tr><td>${b.date}</td><td>${b.weight != null ? b.weight + 'kg' : '-'}</td><td>${b.waist != null ? b.waist + 'cm' : '-'}</td></tr>`).join('') : '';
+  const daysSince = body.length ? Math.round((new Date(t) - new Date(body[0].date)) / 86400000) : 99;
+  $('body-flag').classList.toggle('hidden', daysSince < 7);
   $('b-date').value = t;
 }
 $('b-save').onclick = () => {
@@ -319,6 +470,8 @@ $('import').onchange = async e => {
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
   ['today', 'cal', 'log'].forEach(t => $('tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+  document.querySelector('meta[name=theme-color]').content = b.dataset.tab === 'today' ? '#FFC93C' : '#ECEFF4';
+  window.scrollTo(0, 0);
   renderAll();
 });
 function renderAll() { renderToday(); renderCal(); renderLog(); }

@@ -38,6 +38,10 @@ assert.strictEqual(c.streak(s, '2026-11-01'), 2);
 s = st({ '2026-11-01': all(13), '2026-11-02': { squat: [5] }, '2026-10-30': all(12) });
 assert.deepStrictEqual(c.monthSummary(s, 2026, 11), { full: 1, partial: 1 });
 
+// 전체 개수
+assert.strictEqual(c.totalReps(st({ '2026-11-01': all(12), '2026-11-02': { squat: [5, 3] } })), 116);
+assert.strictEqual(c.totalReps(st({})), 0);
+
 // 백업: 정상은 통과, 잘못된 파일은 거절
 const good = JSON.stringify(st({ '2026-11-01': all(12) }));
 assert.ok(c.parseBackup(good).days['2026-11-01']);
